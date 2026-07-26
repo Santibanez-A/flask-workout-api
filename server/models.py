@@ -18,7 +18,7 @@ class Exercise(db.Model):
     workout_exercises = db.relationship(
         "WorkoutExercise",
         back_populates="exercise",
-        cascade="all, delete-oprhan"
+        cascade="all, delete-orphan"
     )
 #workouts to workoutEx
     workouts = db.relationship(
