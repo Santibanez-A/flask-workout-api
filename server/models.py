@@ -10,32 +10,30 @@ class Exercise(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     category = db.Column(db.String, nullable=False)
-    equipment_needed = db.Column(db.Boolean, nullable=False, default=False)
+    equipment_needed = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False
+    )
 
-
-
-#workoutEx to ex
     workout_exercises = db.relationship(
         "WorkoutExercise",
         back_populates="exercise",
         cascade="all, delete-orphan"
     )
-#workouts to workoutEx
+
     workouts = db.relationship(
         "Workout",
         secondary="workout_exercises",
         viewonly=True
     )
 
+    @validates("name")
+    def validate_name(self, key, name):
+        if not name or not name.strip():
+            raise ValueError("Exercise name must not be empty")
 
-@validates("name")
-def validate_name(self, key,name):
-    if not name or not name.strip():
-        raise ValueError("Exercise name must not be empty")
-    
-    return name
-
-
+        return name.strip()
 
 
 
@@ -61,13 +59,17 @@ class Workout(db.Model):
         viewonly=True
     )
 
-@validates("duration_minutes")
-def validate_duration_minutes(self, key, duration):
-    if duration_minutes <= 0:
-        raise ValueError("Workout duration must be greater than zero")
-    return duration_minutes
+    @validates("duration_minutes")
+    def validate_duration_minutes(self, key, duration_minutes):
+        if duration_minutes is None or duration_minutes <= 0:
+            raise ValueError(
+                "Workout duration must be greater than zero"
+        )
+
+        return duration_minutes
 
 
+    
 class WorkoutExercise(db.Model):
     __tablename__ = "workout_exercises"
 
