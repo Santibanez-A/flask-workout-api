@@ -1,4 +1,4 @@
-from marshmallow import fields
+from marshmallow import fields, validates, ValidationError
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 
 from models import Exercise, Workout, WorkoutExercise
@@ -30,6 +30,10 @@ class ExerciseSchema(SQLAlchemyAutoSchema):
         many=True,
         dump_only=True
     )
+    @validates("name")
+    def validate_name(self, value):
+        if not value or not value.strip():
+            raise ValidationError("Exercise name cannot be empty.")
 
 
 class WorkoutSchema(SQLAlchemyAutoSchema):
@@ -49,6 +53,13 @@ class WorkoutSchema(SQLAlchemyAutoSchema):
         many=True,
         dump_only=True,
     )
+
+    @validates("duration_minutes")
+    def validate_duration(self, value):
+        if value <= 0:
+            raise ValidationError(
+            "Workout duration must be greater than zero."
+        )
 
 
 
