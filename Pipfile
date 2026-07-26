@@ -11,7 +11,8 @@ werkzeug = "==2.2.2"
 importlib-metadata = "==6.0.0"
 importlib-resources = "==5.10.0"
 ipdb = "==0.13.9"
-marshmallow = "==3.20.1"
+marshmallow = "*"
+marshmallow-sqlalchemy = "*"
 
 [dev-packages]
 
