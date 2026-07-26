@@ -1,76 +1,100 @@
-
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import validates
 
 db = SQLAlchemy()
 
-# Define models here
-class Exercise:(db.Model)
-__tablename__ = "exercises"
+
+class Exercise(db.Model):
+    __tablename__ = "exercises"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    category = db.Column(db.String, nullable=False)
+    equipment_needed = db.Column(db.Boolean, nullable=False, default=False)
 
 
-id = db.Column(db.Integer, primary_key=True)
-name = db.Column(db.String)
-category = db.Column(db.String)
-equipment_needed = db.Column(db.Boolean)
 
-#workoutEX to Exercise
-workout_exercises = db.relationship(
-    "WorkoutExercises",
-    back_populates="exercise"
+#workoutEx to ex
+    workout_exercises = db.relationship(
+        "WorkoutExercise",
+        back_populates="exercise",
+        cascade="all, delete-oprhan"
+    )
+#workouts to workoutEx
+    workouts = db.relationship(
+        "Workout",
+        secondary="workout_exercises",
+        viewonly=True
     )
 
 
-#workouts to Ex M -U
-workouts = db.relationship(
-    "Workout",
-    secondary="workout_exercise",
-    viewonly=True
-)
+@validates("name")
+def validate_name(self, key,name):
+    if not name or not name.strip():
+        raise ValueError("Exercise name must not be empty")
+    
+    return name
 
 
-class Workout:(db.Model)
-__tablename__ = "workouts"
 
-id = db.Column(db.Integer, primary_key=True)
-date = db.Column(db.Date)
-duration_minutes = db.Column(db.Integer)
-notes = db.Column(db.Text)
 
-#workoutEX to Workout U
-workout_exercises = db.relationship(
-    "WorkoutExercises",
-    back_populates="workout"
+
+
+
+class Workout(db.Model):
+    __tablename__ = "workouts"
+
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, nullable=False)
+    duration_minutes = db.Column(db.Integer, nullable=False, default=False)
+    notes = db.Column(db.Text)
+
+    workout_exercises = db.relationship(
+        "WorkoutExercise",
+        back_populates="workout",
+        cascade="all, delete-orphan"
+    )
+
+    exercises = db.relationship(
+        "Exercise",
+        secondary="workout_exercises",
+        viewonly=True
+    )
+
+@validates("duration_minutes")
+def validate_duration_minutes(self, key, duration):
+    if duration_minutes <= 0:
+        raise ValueError("Workout duration must be greater than zero")
+    return duration_minutes
+
+
+class WorkoutExercise(db.Model):
+    __tablename__ = "workout_exercises"
+
+    id = db.Column(db.Integer, primary_key=True)
+    reps = db.Column(db.Integer)
+    sets = db.Column(db.Integer)
+    duration_seconds = db.Column(db.Integer)
+
+    workout_id = db.Column(
+        db.Integer,
+        db.ForeignKey("workouts.id"),
+        nullable=False
+    )
+
+    exercise_id = db.Column(
+        db.Integer,
+        db.ForeignKey("exercises.id"),
+        nullable=False
     )
 
 
-#workout to WorkoutEx M -U
-exercises = db.relationship(
-    "Exercise",
-    secondary="workout_exercise",
-    viewonly=True
-)
+    workout = db.relationship(
+        "Workout",
+        back_populates="workout_exercises"
+    )
 
-
-
-class WorkoutExercise:(db.Model)
-__tablename__ = "workout_exercise"
-
-id = db.Column(db.Integer, primary_key=True)
-workout_id = db.Column(db.Integer, db.ForeignKey("workouts.id"))
-exercise_id = db.Column(db.Integer, db.ForeignKey("exercises.id"))
-reps = db.Column(db.Integer)
-sets = db.Column(db.Integer)
-duration_seconds = db.Column(db.Integer)
-
-#workout to workoutEX U
-workout = db.relationship(
-    "Workout",
-    back_populates="workout_exercise"
-)
-
-#exercises to workoutEX U
-exercise = db.relationship(
-    "Exercise",
-    back_populates="workout_exercise"
+    exercise = db.relationship(
+        "Exercise",
+        back_populates="workout_exercises"
     )
